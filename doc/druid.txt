@@ -1,0 +1,15 @@
+#druid会根据url自己选择driver-class-name，以下配置无需添加
+#spring.datasource.driver-class-name = com.mysql.cj.jdbc.Driver
+
+#以下两项mysql下建议关闭，是Oracle特色配置，其中spring.datasource.druid.max-open-prepared-statements = -1去掉，则spring.datasource.druid.max-pool-prepared-statement-per-connection-size值为10
+#spring.datasource.druid.pool-prepared-statements = false
+#spring.datasource.druid.max-pool-prepared-statement-per-connection-size = -1
+#spring.datasource.druid.max-open-prepared-statements= #等价于上面的max-pool-prepared-statement-per-connection-size
+
+#启用不公平锁，提升并发性能
+#spring.datasource.druid.use-unfair-lock = true
+
+#以下三个参数是其默认设置，满足需求，可以不配置
+#spring.datasource.druid.test-on-borrow = false
+#spring.datasource.druid.test-on-return = false
+#spring.datasource.druid.test-while-idle = true
