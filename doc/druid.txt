@@ -13,3 +13,15 @@
 #spring.datasource.druid.test-on-borrow = false
 #spring.datasource.druid.test-on-return = false
 #spring.datasource.druid.test-while-idle = true
+
+#Druid会智能配置，能够兼顾性能和公平性
+#spring.datasource.druid.use-unfair-lock = true
+
+#以下不用配置，Druid默认5分钟
+spring.datasource.druid.remove-abandoned-timeout=
+
+#当驱动包有ping方法时，则调用ping方法
+spring.datasource.druid.validation-query
+
+#加上防止JPA的Example方式调用
+spring.datasource.druid.filter.stat.merge-sql = true
