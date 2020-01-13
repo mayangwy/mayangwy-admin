@@ -25,3 +25,9 @@ spring.datasource.druid.validation-query
 
 #加上防止JPA的Example方式调用
 spring.datasource.druid.filter.stat.merge-sql = true
+
+#以下配置默认7个小时，为了防止mysql8小时空闲后会主动断开连接，从而导致连接不可用的问题，一般无需配置，使用默认的即可
+spring.datasource.druid.max-evictable-idle-time-millis = 600000
+
+#以下配置默认为true，即监控页面的重置按钮可以点击生效，将数据重置，为保证数据安全可以设置为false
+spring.datasource.druid.stat-view-servlet.reset-enable = false
