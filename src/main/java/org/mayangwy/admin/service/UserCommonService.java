@@ -5,6 +5,7 @@ import org.mayangwy.admin.entity.UserPO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -14,7 +15,8 @@ public class UserCommonService {
     private UserRepository userRepository;
 
     public List<UserPO> findAll(){
-        List<UserPO> all = userRepository.findAll();
+        //List<UserPO> all = userRepository.findAll();
+        List<UserPO> all = userRepository.findAllById(Arrays.asList(3L, 4L));
         return all;
     }
 
