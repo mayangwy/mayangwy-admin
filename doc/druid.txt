@@ -31,3 +31,7 @@ spring.datasource.druid.max-evictable-idle-time-millis = 600000
 
 #以下配置默认为true，即监控页面的重置按钮可以点击生效，将数据重置，为保证数据安全可以设置为false
 spring.datasource.druid.stat-view-servlet.reset-enable = false
+
+#druid日志配置一般不用，因为不大符合需求，采用继承filter类，定制打印sql
+#通过spring.datasource.druid.filter.log4j2.后面显示的内容看有哪些功能
+#spring.datasource.druid.filter.slf4j.enabled = true
