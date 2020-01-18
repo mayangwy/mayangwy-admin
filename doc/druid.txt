@@ -35,3 +35,7 @@ spring.datasource.druid.stat-view-servlet.reset-enable = false
 #druid日志配置一般不用，因为不大符合需求，采用继承filter类，定制打印sql
 #通过spring.datasource.druid.filter.log4j2.后面显示的内容看有哪些功能
 #spring.datasource.druid.filter.slf4j.enabled = true
+
+#druid已经有日志打印，不需要以下配置
+#spring.jpa.show-sql = true
+#logging.level.org.hibernate.type.descriptor.sql.BasicBinder = trace

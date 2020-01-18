@@ -1,5 +1,7 @@
 package org.mayangwy.admin.server;
 
+import cn.hutool.core.util.IdUtil;
+import org.apache.logging.log4j.ThreadContext;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -15,6 +17,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 public class AdminApplication {
 
 	public static void main(String[] args) {
+		//设置启动时主线程的线程ID，用于日志记录
+		ThreadContext.put("logId", IdUtil.simpleUUID());
 		SpringApplication.run(AdminApplication.class, args);
 	}
 
