@@ -39,3 +39,5 @@ spring.datasource.druid.stat-view-servlet.reset-enable = false
 #druid已经有日志打印，不需要以下配置
 #spring.jpa.show-sql = true
 #logging.level.org.hibernate.type.descriptor.sql.BasicBinder = trace
+
+#statement_executeErrorAfter中的形参sql和statement中的LastExecuteSql是一样的
