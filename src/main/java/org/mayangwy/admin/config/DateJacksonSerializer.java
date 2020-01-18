@@ -10,7 +10,7 @@ import java.util.Date;
 
 public class DateJacksonSerializer extends JsonSerializer<Date> {
 
-    private String dateFormat;
+    private String dateFormat = "yyyy-MM-dd HH:mm:ss";
 
     public void setDateFormat(String dateFormat) {
         this.dateFormat = dateFormat;

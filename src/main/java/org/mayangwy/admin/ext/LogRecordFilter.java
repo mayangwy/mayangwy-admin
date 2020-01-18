@@ -94,7 +94,7 @@ public class LogRecordFilter extends FilterEventAdapter {
         for(Map.Entry<Integer, JdbcParameter> parameter : parameters.entrySet()){
             log(logType, executeType + " - Parameter index " + parameter.getKey() + " : " + parameter.getValue().getValue());
         }
-        log(logType, executeType + " - cost time : " + (System.currentTimeMillis() - longThreadLocal.get()));
+        log(logType, executeType + " - cost time : " + (System.currentTimeMillis() - longThreadLocal.get()) + " ms");
     }
 
     private void logUpdateCount(int updateCount, LogType logType){
