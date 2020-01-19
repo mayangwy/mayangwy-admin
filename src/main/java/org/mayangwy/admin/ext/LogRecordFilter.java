@@ -1,5 +1,6 @@
 package org.mayangwy.admin.ext;
 
+import cn.hutool.core.util.NumberUtil;
 import com.alibaba.druid.filter.FilterEventAdapter;
 import com.alibaba.druid.proxy.jdbc.DataSourceProxy;
 import com.alibaba.druid.proxy.jdbc.JdbcParameter;
@@ -23,8 +24,6 @@ import java.util.Map;
 @Slf4j
 public class LogRecordFilter extends FilterEventAdapter {
 
-    private ThreadLocal<Long> longThreadLocal = new ThreadLocal<>();
-
     /**
      *
      * 控制日志打印级别
@@ -32,6 +31,8 @@ public class LogRecordFilter extends FilterEventAdapter {
      */
     @Value("${spring.datasource.druid.filter.logRecord.debugEnable:false}")
     private boolean debugEnable;
+
+    //此处定义一个mergeSQL的配置，控制是否将参数与sql绑定好后打印
 
     @Override
     public void init(DataSourceProxy dataSource) {
@@ -47,7 +48,7 @@ public class LogRecordFilter extends FilterEventAdapter {
      */
     @Override
     protected void statementExecuteQueryBefore(StatementProxy statement, String sql) {
-        setStartTime();
+        setStartTime(statement);
     }
 
     /**
@@ -67,7 +68,7 @@ public class LogRecordFilter extends FilterEventAdapter {
 
     @Override
     protected void statementExecuteUpdateBefore(StatementProxy statement, String sql) {
-        setStartTime();
+        setStartTime(statement);
     }
 
     @Override
@@ -82,8 +83,8 @@ public class LogRecordFilter extends FilterEventAdapter {
         logSqlAndParamsAndExecuteTime(statement, LogType.ERROR);
     }
 
-    private void setStartTime(){
-        longThreadLocal.set(System.currentTimeMillis());
+    private void setStartTime(StatementProxy statement){
+        statement.setLastExecuteStartNano();
     }
 
     private void logSqlAndParamsAndExecuteTime(StatementProxy statement, LogType logType){
@@ -94,7 +95,10 @@ public class LogRecordFilter extends FilterEventAdapter {
         for(Map.Entry<Integer, JdbcParameter> parameter : parameters.entrySet()){
             log(logType, executeType + " - Parameter index " + parameter.getKey() + " : " + parameter.getValue().getValue());
         }
-        log(logType, executeType + " - cost time : " + (System.currentTimeMillis() - longThreadLocal.get()) + " ms");
+        statement.setLastExecuteTimeNano();
+        double nanos = statement.getLastExecuteTimeNano();
+        double millis = nanos / (1000 * 1000);
+        log(logType, executeType + " - cost time : " + NumberUtil.formatPercent(millis, 0) + " ms");
     }
 
     private void logUpdateCount(int updateCount, LogType logType){
