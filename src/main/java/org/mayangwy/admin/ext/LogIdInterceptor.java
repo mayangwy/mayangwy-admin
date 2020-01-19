@@ -8,6 +8,11 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ *
+ * 为每一个请求的线程添加一个logID
+ *
+ */
 @Component
 public class LogIdInterceptor implements HandlerInterceptor {
 
@@ -16,4 +21,5 @@ public class LogIdInterceptor implements HandlerInterceptor {
         ThreadContext.put("logId", IdUtil.simpleUUID());
         return true;
     }
+
 }

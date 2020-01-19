@@ -98,7 +98,7 @@ public class LogRecordFilter extends FilterEventAdapter {
         statement.setLastExecuteTimeNano();
         double nanos = statement.getLastExecuteTimeNano();
         double millis = nanos / (1000 * 1000);
-        log(logType, executeType + " - cost time : " + NumberUtil.formatPercent(millis, 0) + " ms");
+        log(logType, executeType + " - cost time : " + NumberUtil.decimalFormat("#", millis) + " ms");
     }
 
     private void logUpdateCount(int updateCount, LogType logType){
