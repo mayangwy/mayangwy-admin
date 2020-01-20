@@ -11,21 +11,14 @@ import org.springframework.stereotype.Component;
 @Component
 @DisallowConcurrentExecution
 @Slf4j
-public class TestJob extends BaseJob {
+public class TestJob2 extends BaseJob {
 
     @Autowired
     private UserCommonService userCommonService;
 
     @Override
     public void doTask(JobExecutionContext context) {
-        log.info(this.toString());
-        log.info(userCommonService.toString());
-        try {
-            Thread.sleep(20000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        log.info("============================== test job is running {} !!! ==============================");
+        log.info("============================== 222222222222222222222 !!! ==============================");
     }
 
 }
