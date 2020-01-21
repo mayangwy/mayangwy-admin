@@ -21,4 +21,14 @@ public class TestJob2 extends BaseJob {
         log.info("============================== 222222222222222222222 !!! ==============================");
     }
 
+    @Override
+    public String taskName() {
+        return "Task0002";
+    }
+
+    @Override
+    public String[] taskCrons() {
+        return new String[]{"45 * * * * ?"};
+    }
+
 }

@@ -1,10 +1,14 @@
 package org.mayangwy.admin.service;
 
 import org.mayangwy.admin.dao.UserRepository;
+import org.mayangwy.admin.entity.PositionPO;
 import org.mayangwy.admin.entity.UserPO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.criteria.*;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -55,6 +59,10 @@ public class UserCommonService {
         userPO2.setUpdateUserId(0L);
         userPO2.setPassword("123321");
         userRepository.save(userPO2);
+    }
+
+    public void findUserAndPosition(){
+
     }
 
 }

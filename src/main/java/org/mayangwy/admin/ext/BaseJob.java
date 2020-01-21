@@ -14,11 +14,25 @@ public abstract class BaseJob implements Job {
         ThreadContext.put("logId", IdUtil.simpleUUID());
         log.info("============= 定时任务准备执行 =============");
 
-        doTask(context);
+        try {
+            doTask(context);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         log.info("============= 定时任务结束执行 =============");
     }
 
-    public abstract void doTask(JobExecutionContext context);
+    public abstract void doTask(JobExecutionContext context) throws Exception;
+
+    public abstract String taskName();
+
+    public abstract String[] taskCrons();
+
+    public String jobDescription(){
+        return taskName();
+    }
+
+
 
 }

@@ -33,12 +33,12 @@ public class QuartzOnStart implements ApplicationRunner {
             date = scheduler.scheduleJob(trigger);
         }
         System.out.println(date);*/
-        if(! scheduler.isStarted()){
+        /*if(! scheduler.isStarted()){
             log.info("task is start !!!");
             scheduler.start();
         } else {
             log.info("task is has start !!!");
-        }
+        }*/
     }
 
 }
