@@ -1,9 +1,8 @@
 package org.mayangwy.admin.utils;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ArrayUtil;
-import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 
 import java.math.BigDecimal;
@@ -21,65 +20,74 @@ public class SqlUtils {
             return sql;
         }
 
-        boolean isInString = false;
-
         StringBuilder stringBuilder = null;
         int startIndex = 0;
         int endIndex;
-        for (int i = 0; i < objects.length; i++) {
+        for (Object object : objects) {
             endIndex = sql.indexOf(QUESTION_MARK, startIndex);
-            if(endIndex == -1){
-                if(startIndex == 0){
-                    return sql;
-                } else {
-                    return stringBuilder.append(sql, startIndex + 1, sql.length()).toString();
-                }
+            if (endIndex == -1) {
+                break;
             } else {
-                if(stringBuilder == null){
+                if (stringBuilder == null) {
                     stringBuilder = new StringBuilder(sql.length() + 50);
                 }
             }
             stringBuilder.append(sql, startIndex, endIndex);
-            Object obj = objects[i];
-            String objStr = null;
-            if(obj == null){
+            if (object == null) {
                 stringBuilder.append("NULL");
             }
-            if(obj instanceof String){
-                stringBuilder.append('\'').append(obj).append('\'');
+            if (object instanceof String) {
+                stringBuilder.append('\'').append(object).append('\'');
             }
-            if(obj instanceof Date){
-                String dateStr = DateUtil.format((Date) obj, "yyyy-MM-dd HH:mm:ss.SSS");
+            if (object instanceof Date) {
+                String dateStr = DateUtil.format((Date) object, "yyyy-MM-dd HH:mm:ss.SSS");
                 stringBuilder.append('\'').append(dateStr).append('\'');
             }
-            if(obj instanceof BigDecimal){
-                stringBuilder.append(((BigDecimal)obj).toPlainString());
+            if (object instanceof BigDecimal) {
+                stringBuilder.append(((BigDecimal) object).toPlainString());
             }
-            if(obj instanceof Byte || obj instanceof Short || obj instanceof Integer || obj instanceof Long || obj instanceof Double || obj instanceof Float){
-                stringBuilder.append(obj);
+            if (object instanceof Byte || object instanceof Short || object instanceof Integer || object instanceof Long || object instanceof Double || object instanceof Float) {
+                stringBuilder.append(object);
             }
 
             startIndex = endIndex + 1;
+
+            if (startIndex == sql.length()) {
+                break;
+            }
         }
 
         if(stringBuilder != null){
-            stringBuilder.append(sql, startIndex, sql.length());
-            return stringBuilder.toString();
+            return stringBuilder.append(sql, startIndex, sql.length()).toString();
+        } else {
+            return sql;
         }
 
-        return null;
     }
 
     public static void main(String[] args) {
-        long start = System.currentTimeMillis();
-        for (int i = 0; i < 10000; i++) {
-            String string = "insert into table value(?, ? , ? ,?, ?,    ?    ,    ?)";
-            //System.out.println(string.indexOf(QUESTION_MARK, 25));
-            Object[] objects = new Object[]{1, new BigDecimal("1.2233212221332132132121323222121"), 234L, new Date(), "码云", 12.345, 3.14F};
-            mergeSqlAndParams(string, objects);
-            //System.out.println(mergeSqlAndParams(string, objects));;
-        }
-        System.out.println(System.currentTimeMillis() - start);
+        //测试正常情况
+        String sql0001 = "insert into table value(?, ? , ? ,?, ?,    ? , ?)";
+        Object[] objects = new Object[]{1, new BigDecimal("1.2233212221332132132121323222121"), 234L, new Date(), "码云", 12.345, 3.14F};
+        System.out.println(mergeSqlAndParams(sql0001, objects));
+
+        //测试参数多的情况
+        String sql0002 = "insert into table value(?, ? , ? ,?, ?,    ? , ?,?)";
+        System.out.println(mergeSqlAndParams(sql0002, objects));
+
+        //测试参数少的情况
+        String sql0003 = "insert into table value(?, ? , ? ,?, ?,    ?)";
+        System.out.println(mergeSqlAndParams(sql0003, objects));
+
+        //测试问号在最后一位的情况
+        String sql0004 = "insert into table value(?, ? , ? ,?, ?,    ?";
+        System.out.println(mergeSqlAndParams(sql0004, objects));
+
+        //测试一个问号的情况
+        String sql0005 = "?";
+        System.out.println(mergeSqlAndParams(sql0005, objects));
+
+        System.out.println(NumberUtil.decimalFormat("##.##", 0.2304));
     }
 
 }

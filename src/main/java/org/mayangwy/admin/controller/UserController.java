@@ -4,14 +4,12 @@ import org.mayangwy.admin.entity.UserPO;
 import org.mayangwy.admin.service.UserCommonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.sql.DataSource;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 public class UserController {
@@ -38,6 +36,16 @@ public class UserController {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         System.out.println(simpleDateFormat.format(userPO.getCreateTime()));
         System.out.println(simpleDateFormat.format(userPO.getUpdateTime()));
+    }
+
+    @GetMapping("/d")
+    public void testSet(@RequestParam("id") Set<Long> ids){
+        System.out.println(ids.size());
+    }
+
+    @GetMapping("/e")
+    public void testE(){
+        userCommonService.testTransaction();
     }
 
 }

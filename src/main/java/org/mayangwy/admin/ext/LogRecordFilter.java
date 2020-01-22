@@ -7,6 +7,7 @@ import com.alibaba.druid.proxy.jdbc.JdbcParameter;
 import com.alibaba.druid.proxy.jdbc.ResultSetProxy;
 import com.alibaba.druid.proxy.jdbc.StatementProxy;
 import lombok.extern.slf4j.Slf4j;
+import org.mayangwy.admin.utils.SqlUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -62,8 +63,8 @@ public class LogRecordFilter extends FilterEventAdapter {
     @Override
     protected void statementExecuteQueryAfter(StatementProxy statement, String sql, ResultSetProxy resultSet) {
         LogType logType = debugEnable ? LogType.DEBUG : LogType.INFO;
-        logSqlAndParamsAndExecuteTime(statement, logType);
-        logQueryCount(statement, logType);
+        logSqlAndParams(statement, logType);
+        logQueryCountAndExecuteTime(statement, logType);
     }
 
     @Override
@@ -74,47 +75,68 @@ public class LogRecordFilter extends FilterEventAdapter {
     @Override
     protected void statementExecuteUpdateAfter(StatementProxy statement, String sql, int updateCount) {
         LogType logType = debugEnable ? LogType.DEBUG : LogType.INFO;
-        logSqlAndParamsAndExecuteTime(statement, logType);
-        logUpdateCount(updateCount, logType);
+        logSqlAndParams(statement, logType);
+        logUpdateCountAndExecuteTime(statement, updateCount, logType);
     }
 
     @Override
     protected void statement_executeErrorAfter(StatementProxy statement, String sql, Throwable error) {
-        logSqlAndParamsAndExecuteTime(statement, LogType.ERROR);
+        logSqlAndParams(statement, LogType.ERROR);
     }
 
     private void setStartTime(StatementProxy statement){
         statement.setLastExecuteStartNano();
     }
 
-    private void logSqlAndParamsAndExecuteTime(StatementProxy statement, LogType logType){
-        String executeType = statement.getLastExecuteType().name();
+    private void logSqlAndParams(StatementProxy statement, LogType logType){
         String oriSql = statement.getLastExecuteSql();
-        log(logType, executeType + " - " + oriSql);
         Map<Integer, JdbcParameter> parameters = statement.getParameters();
+        Object[] params = new Object[parameters.size()];
+        int i = 0;
         for(Map.Entry<Integer, JdbcParameter> parameter : parameters.entrySet()){
-            log(logType, executeType + " - Parameter index " + parameter.getKey() + " : " + parameter.getValue().getValue());
+            params[i] = parameter.getValue().getValue();
+            i++;
         }
-        statement.setLastExecuteTimeNano();
-        double nanos = statement.getLastExecuteTimeNano();
-        double millis = nanos / (1000 * 1000);
-        log(logType, executeType + " - cost time : " + NumberUtil.decimalFormat("#", millis) + " ms");
+        String mergeSql = SqlUtils.mergeSqlAndParams(oriSql, params);
+        log(logType, mergeSql);
     }
 
-    private void logUpdateCount(int updateCount, LogType logType){
-        log(logType, "ExecuteUpdate updateCount : " + updateCount);
+    private void logExecuteTypeAndTime(StatementProxy statement, int updateCount, LogType logType){
+        String executeType = statement.getLastExecuteType().name();
+
+        String executeTime = getExecuteTime(statement);
+
+        log(logType, "ExecuteType : " + executeType + " , cost time : " + executeTime);
     }
 
-    private void logQueryCount(StatementProxy statement, LogType logType){
+    private void logUpdateCountAndExecuteTime(StatementProxy statement, int updateCount, LogType logType){
+        String executeType = statement.getLastExecuteType().name();
+
+        String executeTime = getExecuteTime(statement);
+
+        log(logType, "ExecuteType : " + executeType + " , updateCount : " + updateCount + " , cost time : " + executeTime);
+    }
+
+    private void logQueryCountAndExecuteTime(StatementProxy statement, LogType logType){
+        String executeType = statement.getLastExecuteType().name();
         try {
             ResultSet resultSet = statement.getRawObject().getResultSet();
             resultSet.last();
             int fetchSize = resultSet.getRow();
             resultSet.beforeFirst();
-            log(logType, statement.getLastExecuteType().name() + " - FetchSize : " + fetchSize);
+
+            String executeTime = getExecuteTime(statement);
+            log(logType, "ExecuteType : " + executeType + " , FetchSize : " + fetchSize + " , cost time : " + executeTime);
         } catch (SQLException ignored) {
 
         }
+    }
+
+    private String getExecuteTime(StatementProxy statement){
+        statement.setLastExecuteTimeNano();
+        double nanos = statement.getLastExecuteTimeNano();
+        double millis = nanos / (1000 * 1000);
+        return NumberUtil.decimalFormat("#0.00", millis) + " ms";
     }
 
     private void log(LogType logType, String logInfo, Object... objects){
