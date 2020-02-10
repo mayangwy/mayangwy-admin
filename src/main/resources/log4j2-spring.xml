@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration status="WARN" monitorInterval="5">
+    <Properties>
+        <!--自定义一些常量，之后使用${变量名}引用-->
+        <Property name="pattern">%d{HH:mm:ss.SSS} %p [%t-%X{logId}] %c{1.} : %m%n</Property>
+        <Property name="baseDir">../logs/my-admin</Property>
+    </Properties>
+
     <appenders>
         <console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="[%d{HH:mm:ss.SSS} - %t - %X{logId}] [%p] - [%c] - %m%n"/>
+            <PatternLayout pattern="${pattern}"/>
         </console>
-        <RollingFile name="I" fileName="../logs/my-admin/info.log"
-                     filePattern="../logs/my-admin/$${date:yyyy-MM}/info-%d{yyyy-MM-dd}-%i.log">
+        <RollingFile name="I" fileName="${baseDir}/info.log"
+                     filePattern="${baseDir}/$${date:yyyy-MM}/info-%d{yyyy-MM-dd}-%i.log">
             <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY"/>
-            <PatternLayout pattern="[%d{HH:mm:ss.SSS} - %t - %X{logId}] [%p] - [%c] - %m%n"/>
+            <PatternLayout pattern="${pattern}"/>
             <Policies>
                 <!-- 默认值为1，精度为filePattern中最精确的时间位数，此配置中为一天 -->
                 <TimeBasedTriggeringPolicy />
@@ -21,11 +27,29 @@
                 </Delete>
             </DefaultRolloverStrategy>
         </RollingFile>
-        <RollingFile name="E" fileName="../logs/my-admin/error.log"
-                     filePattern="../logs/my-admin/$${date:yyyy-MM}/error-%d{yyyy-MM-dd}-%i.log">
+
+        <RollingFile name="W" fileName="${baseDir}/warn.log"
+                     filePattern="${baseDir}/$${date:yyyy-MM}/warn-%d{yyyy-MM-dd}-%i.log">
+            <!--控制台只输出error及以上级别的信息（onMatch），其他的直接拒绝（onMismatch）-->
+            <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="${pattern}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="1000000000">
+                <Delete basePath="../logs/my-admin/$${date:yyyy-MM}/" maxDepth="2">
+                    <IfFileName glob="*.log" />
+                    <IfLastModified age="60d" />
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+
+        <RollingFile name="E" fileName="${baseDir}/error.log"
+                     filePattern="${baseDir}/$${date:yyyy-MM}/error-%d{yyyy-MM-dd}-%i.log">
             <!--控制台只输出error及以上级别的信息（onMatch），其他的直接拒绝（onMismatch）-->
             <ThresholdFilter level="error" onMatch="ACCEPT" onMismatch="DENY"/>
-            <PatternLayout pattern="[%d{HH:mm:ss.SSS} - %t - %X{logId}] [%p] - [%c] - %m%n"/>
+            <PatternLayout pattern="${pattern}"/>
             <Policies>
                 <TimeBasedTriggeringPolicy />
                 <SizeBasedTriggeringPolicy size="100 MB"/>
@@ -38,12 +62,14 @@
             </DefaultRolloverStrategy>
         </RollingFile>
     </appenders>
+
     <loggers>
         <logger name="org.springframework" level="info" />
         <logger name="org.mybatis" level="info" />
         <root level="info">
             <appender-ref ref="Console"/>
             <appender-ref ref="I"/>
+            <appender-ref ref="W"/>
             <appender-ref ref="E"/>
         </root>
     </loggers>
