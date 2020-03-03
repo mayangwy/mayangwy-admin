@@ -2,6 +2,7 @@ package org.mayangwy.admin.modules.system.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+import org.mayangwy.admin.core.base.annotation.IsDel;
 import org.mayangwy.admin.core.base.annotation.StrTrim;
 
 import javax.persistence.*;
@@ -57,6 +58,7 @@ public class UserPO implements Serializable {
     @Column(name = "UPDATE_USER_ID")
     private Long updateUserId;
 
+    @IsDel
     @Column(name = "IS_DEL")
     private Integer isDel;
 

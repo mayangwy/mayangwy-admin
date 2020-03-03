@@ -1,6 +1,7 @@
 package org.mayangwy.admin.modules.system.service;
 
 import cn.hutool.core.util.RandomUtil;
+import org.mayangwy.admin.core.ext.jpa.TestBaseJpaRepository;
 import org.mayangwy.admin.modules.system.dao.UserRepository;
 import org.mayangwy.admin.modules.system.entity.UserPO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,9 @@ public class UserCommonService {
 
     @Autowired
     private List<Object> objectList;
+
+    @Autowired
+    private TestBaseJpaRepository testBaseJpaRepository;
 
     @Autowired
     private PlatformTransactionManager platformTransactionManager;
@@ -46,6 +50,9 @@ public class UserCommonService {
                 all.get(i).setFff(2223323342234234242433.000000000333);
             }
         }
+
+        Object byId = testBaseJpaRepository.findById(4);
+
         //List<UserPO> all = userRepository.findAllById(Arrays.asList(3L, 4L));
         return all;
     }
