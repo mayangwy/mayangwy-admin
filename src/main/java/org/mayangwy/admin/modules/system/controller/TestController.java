@@ -4,13 +4,11 @@ import org.mayangwy.admin.core.base.annotation.ReqLog;
 import org.mayangwy.admin.core.base.entity.RespResult;
 import org.mayangwy.admin.core.base.enums.CommonSuccessEnum;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 public class TestController {
@@ -44,6 +42,12 @@ public class TestController {
         Map<String, Object> map = new HashMap<>();
         map.put("aaa", "111");
         return map;
+    }
+
+    @GetMapping("/test4")
+    @ResponseBody
+    public RespResult<List<String>> test4(){
+        return RespResult.success(Arrays.asList("123", "456"));
     }
 
 }

@@ -1,2 +1,3 @@
 #每次运行创建的实例不为单例
 #各种配置是怎么回事
+#spring.quartz.properties.org.quartz.threadPool.threadNamePrefix = quartz_test
