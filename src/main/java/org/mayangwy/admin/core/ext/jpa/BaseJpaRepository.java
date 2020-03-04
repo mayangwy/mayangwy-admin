@@ -1,6 +1,8 @@
 package org.mayangwy.admin.core.ext.jpa;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ClassUtil;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.mayangwy.admin.core.base.annotation.CreateTime;
 import org.mayangwy.admin.core.base.annotation.IsDel;
 import org.mayangwy.admin.core.base.annotation.UpdateTime;
@@ -15,7 +17,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class BaseJpaRepository<T> {
@@ -34,41 +38,41 @@ public class BaseJpaRepository<T> {
     private String updateTimeName;
 
     public BaseJpaRepository(){
-        this.doMainClass = getDomainClass();
-        System.out.println(this.doMainClass.getSimpleName());
-        Field[] declaredFields = ClassUtil.getDeclaredFields(this.doMainClass);
+        doMainClass = getDomainClass();
+        System.out.println(doMainClass.getSimpleName());
+        Field[] declaredFields = ClassUtil.getDeclaredFields(doMainClass);
         if(declaredFields != null){
             for(Field field : declaredFields){
                 Id idAnnotation = field.getAnnotation(Id.class);
-                if(this.idName == null && idAnnotation != null){
-                    this.idName = field.getName();
+                if(idName == null && idAnnotation != null){
+                    idName = field.getName();
                 }
 
                 IsDel isDelAnnotation = field.getAnnotation(IsDel.class);
-                if(this.isDelName == null && isDelAnnotation != null){
-                    this.isDelName = field.getName();
+                if(isDelName == null && isDelAnnotation != null){
+                    isDelName = field.getName();
                 }
 
                 CreateTime createTimeAnnotation = field.getAnnotation(CreateTime.class);
-                if(this.createTimeName == null && createTimeAnnotation != null){
-                    this.createTimeName = field.getName();
+                if(createTimeName == null && createTimeAnnotation != null){
+                    createTimeName = field.getName();
                 }
 
                 UpdateTime updateTimeAnnotation = field.getAnnotation(UpdateTime.class);
-                if(this.updateTimeName == null && updateTimeAnnotation != null){
-                    this.updateTimeName = field.getName();
+                if(updateTimeName == null && updateTimeAnnotation != null){
+                    updateTimeName = field.getName();
                 }
 
             }
         }
 
-        if(this.idName == null){
+        if(idName == null){
             Method[] declaredMethods = ClassUtil.getDeclaredMethods(this.doMainClass);
             if(declaredMethods != null){
                 for(Method method : declaredMethods){
                     Id idAnnotation = method.getAnnotation(Id.class);
                     if(idAnnotation != null){
-                        this.idName = method.getName().substring(3);
+                        idName = method.getName().substring(3);
                         break;
                     }
                 }
@@ -84,12 +88,40 @@ public class BaseJpaRepository<T> {
         return entityManager.merge(entity);
     }
 
+    public T save(T entity){
+        Field declaredField = ClassUtil.getDeclaredField(doMainClass, idName);
+        Object id;
+        try {
+            id = declaredField.get(entity);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+        if(id == null){
+            add(entity);
+            return entity;
+        } else {
+            return update(entity);
+        }
+    }
+
+    private void setCommonValue(List<T> entityList){
+        if(CollUtil.isEmpty(entityList)){
+            return;
+        }
+        Field createTimeField = ClassUtil.getDeclaredField(doMainClass, createTimeName);
+        Field updateTimeField = ClassUtil.getDeclaredField(doMainClass, updateTimeName);
+        Field isDelField = ClassUtil.getDeclaredField(doMainClass, isDelName);
+
+        Date nowDate = new Date();
+
+    }
+
     public Object findById(Serializable id){
         String hql = "from " + doMainClass.getSimpleName() + " where " + idName + " = ? ";
         Map<String, Object> params = new HashMap<>();
         params.put(idName, id);
-        if(this.isDelName != null){
-            hql = hql + this.isDelName + " = ?";
+        if(isDelName != null){
+            hql = hql + isDelName + " = ?";
             params.put(isDelName, IsDelEnum.YES);
         }
         Query query = entityManager.createQuery(hql);
