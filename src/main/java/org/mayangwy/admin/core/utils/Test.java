@@ -39,6 +39,8 @@ public class Test {
 
         String sss = null;
         System.out.println(sss instanceof String);
+
+        System.out.println(StrUtils.getGetterName("a"));
     }
 
 }
