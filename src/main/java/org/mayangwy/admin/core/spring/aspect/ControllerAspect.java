@@ -119,7 +119,6 @@ public class ControllerAspect {
 
             logRecord(joinPoint, isPersist, inputStr, outputStr, null);
         } catch (Throwable throwable) {
-            log.error("服务器内部异常", throwable);
             //错误的时候，强制打印入参，但是打印过的话就不用再打印了。
             if (!inputRecord) {
                 String inputStrTemp = getInputStr(joinPoint);
@@ -132,6 +131,8 @@ public class ControllerAspect {
             } else {
                 systemRuntimeException = new SystemRuntimeException(CommonErrorEnum.FAIL, throwable);
             }
+
+            log.error("服务器内部异常", throwable);
 
             logRecord(joinPoint, isPersist, inputStr, null, systemRuntimeException);
 

@@ -18,6 +18,10 @@ public class SystemRuntimeException extends RuntimeException {
         this(result, data, null);
     }
 
+    public SystemRuntimeException(IErrorResultCode result, Throwable e) {
+        this(result, null, e);
+    }
+
     public SystemRuntimeException(IErrorResultCode result, Object data, Throwable e) {
         super(result.getMsg(), e);
         this.result = result;
