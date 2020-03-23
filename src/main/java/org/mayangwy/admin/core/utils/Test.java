@@ -41,6 +41,9 @@ public class Test {
         System.out.println(sss instanceof String);
 
         System.out.println(StrUtils.getGetterName("a"));
+
+        System.out.println("select a from abc".indexOf(" from "));
+        System.out.println("select a from abc".substring(8));
     }
 
 }

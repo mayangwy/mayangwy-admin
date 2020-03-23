@@ -51,8 +51,6 @@ public class UserCommonService {
             }
         }
 
-        Object byId = testBaseJpaRepository.findById(4);
-
         //List<UserPO> all = userRepository.findAllById(Arrays.asList(3L, 4L));
         return all;
     }

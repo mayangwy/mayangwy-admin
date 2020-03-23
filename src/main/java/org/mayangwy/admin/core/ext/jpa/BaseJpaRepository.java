@@ -1,17 +1,16 @@
 package org.mayangwy.admin.core.ext.jpa;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
-import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ClassUtil;
-import cn.hutool.core.util.StrUtil;
 import org.hibernate.query.internal.NativeQueryImpl;
-import org.hibernate.query.spi.QueryImplementor;
 import org.hibernate.transform.Transformers;
-import org.mayangwy.admin.core.base.annotation.CreateTime;
-import org.mayangwy.admin.core.base.annotation.IsDel;
-import org.mayangwy.admin.core.base.annotation.UpdateTime;
+import org.mayangwy.admin.core.base.annotation.*;
+import org.mayangwy.admin.core.base.entity.PageInput;
+import org.mayangwy.admin.core.base.entity.PageOutput;
 import org.mayangwy.admin.core.base.enums.IsDelEnum;
+import org.mayangwy.admin.core.base.exception.SystemRuntimeException;
 import org.mayangwy.admin.core.utils.StrUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -24,7 +23,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class BaseJpaRepository<T> {
 
@@ -41,9 +39,12 @@ public class BaseJpaRepository<T> {
 
     private String updateTimeName;
 
+    private String createUserIdName;
+
+    private String updateUserIdName;
+
     public BaseJpaRepository(){
         doMainClass = getDomainClass();
-        System.out.println(doMainClass.getSimpleName());
         Field[] declaredFields = ClassUtil.getDeclaredFields(doMainClass);
         if(declaredFields != null){
             for(Field field : declaredFields){
@@ -65,6 +66,16 @@ public class BaseJpaRepository<T> {
                 UpdateTime updateTimeAnnotation = field.getAnnotation(UpdateTime.class);
                 if(updateTimeName == null && updateTimeAnnotation != null){
                     updateTimeName = field.getName();
+                }
+
+                CreateUserId createUserIdAnnotation = field.getAnnotation(CreateUserId.class);
+                if(createUserIdName == null && createUserIdAnnotation != null){
+                    createUserIdName = field.getName();
+                }
+
+                UpdateUserId updateUserIdAnnotation = field.getAnnotation(UpdateUserId.class);
+                if(updateUserIdName == null && updateUserIdAnnotation != null){
+                    updateUserIdName = field.getName();
                 }
 
             }
@@ -116,103 +127,119 @@ public class BaseJpaRepository<T> {
         return result;
     }
 
-    public Object deleteLogic(Serializable id){
-        Assert.notBlank(isDelName, "isDelName is not blank");
-        Assert.notNull(id, "id is not null");
-
-        String hql = "update " + doMainClass.getSimpleName() + " set "
-                + isDelName + " = :"+ isDelName +" , " + updateTimeName + " = : " + updateTimeName + " where "
-                + idName + " = :" + idName;
-
-        Map<String, Object> params = new HashMap<>();
-        params.put(isDelName, IsDelEnum.NO.getCode());
-        params.put(updateTimeName, new Date());
-        params.put(idName, id);
-
-        Query query = entityManager.createQuery(hql);
-        params.forEach(query::setParameter);
-        return query.executeUpdate();
+    public int deleteLogicById(Serializable id){
+        return deleteLogicByIds(Collections.singletonList(id));
     }
 
-    public Object deleteLogics(List<Serializable> ids){
+    public int deleteLogicByIds(List<Serializable> ids){
         Assert.notBlank(isDelName, "isDelName is not blank");
         Assert.notEmpty(ids, "ids is not empty");
 
         String hql = "update " + doMainClass.getSimpleName() + " set "
-                + isDelName + " = :" + isDelName + " , " + updateTimeName + " = :" + updateTimeName + " " + " where "
-                + idName + " in (:" + idName + ") ";
+                + isDelName + " = :" + isDelName + " , "
+                + updateTimeName + " = :" + updateTimeName + " "
+                + " where ";
+
+        if(ids.size() == 1){
+            hql = hql + idName + " = :" + idName;
+        } else {
+            hql = hql + idName + " in (:" + idName + ") ";
+        }
 
         Map<String, Object> params = new HashMap<>();
         params.put(isDelName, IsDelEnum.NO.getCode());
         params.put(updateTimeName, new Date());
         params.put(idName, ids);
 
-        Query query = entityManager.createQuery(hql);
-        params.forEach(query::setParameter);
-        return query.executeUpdate();
+        return executeUpdate(hql, params);
     }
 
-    public Object delete(Serializable id){
+    public int deleteById(Serializable id){
+        return deleteByIds(Collections.singletonList(id));
+    }
+
+    public int deleteByIds(List<Serializable> ids){
         Assert.notBlank(idName, "idName is not blank");
-        Assert.notNull(id, "id is not null");
+        Assert.notEmpty(ids, "ids is not empty");
 
         String hql = "delete from " + doMainClass.getSimpleName() + " where " + idName + " = :" + idName;
 
         Map<String, Object> params = new HashMap<>();
-        params.put(idName, id);
+        params.put(idName, ids);
 
-        Query query = entityManager.createQuery(hql);
-        params.forEach(query::setParameter);
-        return query.executeUpdate();
+        return executeUpdate(hql, params);
     }
 
-    public T findById(Serializable id){
-        Assert.notNull(id, "id is not null");
-
-        String hql = "from " + doMainClass.getSimpleName() + " where " + idName + " = :"+ idName;
-        Map<String, Object> params = new HashMap<>();
-        params.put(idName, id);
-        if(isDelName != null){
-            hql = hql + " and " + isDelName + " = :" + isDelName;
-            params.put(isDelName, IsDelEnum.YES);
+    public <I, O> O findOne(String hql, I input){
+        List<O> objects = find(hql, input, null);
+        if(CollUtil.isEmpty(objects)){
+            return null;
         }
-        Query query = entityManager.createQuery(hql);
-        params.forEach(query::setParameter);
-        List resultList = query.unwrap(NativeQueryImpl.class).setResultTransformer(Transformers.aliasToBean(doMainClass)).getResultList();
-        return (T)resultList.get(0);
+        if(objects.size() > 1){
+            throw new RuntimeException("resultSet not more than 1");
+        }
+
+        return objects.get(0);
     }
 
-    public List<T> findAll(){
-        if(StrUtil.isBlank(isDelName)){
-            String hql = "from " + doMainClass.getSimpleName();
-            return find(hql, doMainClass);
+    public <I, O> PageOutput<O> findPage(String hql, I input, PageInput pageInput){
+        Assert.notNull(pageInput, "pageInput is not null");
+
+        List<O> objects = find(hql, input, pageInput);
+
+        PageOutput<O> pageOutput = new PageOutput<>();
+        pageOutput.setList(objects);
+        if(! pageInput.isCount()){
+            return pageOutput;
+        }
+
+        String countHql = "select count(0)" + hql.substring(hql.toUpperCase().indexOf(" FROM "));
+        Long count = findCount(countHql, input);
+        pageOutput.setCount(count);
+        return pageOutput;
+    }
+
+    public <I> Long findCount(String hql, I input){
+        return findOne(hql, input);
+    }
+
+    public <I, O> List<O> findList(String hql, I input){
+        return find(hql, input, null);
+    }
+
+    private <I, O> List<O> find(String hql, I input, PageInput pageInput){
+        Assert.notNull(hql, "hql is not null");
+
+        Map<String, Object> params;
+        if(input instanceof Map){
+            params = (Map<String, Object>) input;
         } else {
-            String hql = "from " + doMainClass.getSimpleName() + " where " + isDelName + " = :" + isDelName;
-            HashMap<String, Object> params = MapUtil.newHashMap();
-            params.put(isDelName, IsDelEnum.YES.getCode());
-            return find(hql, params, doMainClass);
+            params = BeanUtil.beanToMap(input, false, true);
         }
-    }
-
-    public <I, O> List<O> find(String hql, Class<O> cla){
-        return find(hql, null, cla);
-    }
-
-    public <I, O> List<O> find(String hql, I input, Class<O> cla){
-        Map<String, Object> params = BeanUtil.beanToMap(input);
         Query query = entityManager.createQuery(hql);
         if(params != null){
             params.forEach(query::setParameter);
         }
-        List resultList = query.unwrap(QueryImplementor.class).setResultTransformer(Transformers.aliasToBean(cla)).getResultList();
+        if(pageInput != null){
+            query.setFirstResult(pageInput.getCurrentPage());
+            query.setMaxResults(pageInput.getPageSize());
+        }
+        List resultList = query.getResultList();
 
         return (List<O>)resultList;
     }
 
     public <I> int executeUpdate(String hql, I input){
-        Map<String, Object> params = BeanUtil.beanToMap(input);
         Query query = entityManager.createQuery(hql);
+
+        Map<String, Object> params;
+        if(input instanceof Map){
+            params = (Map<String, Object>) input;
+        } else {
+            params = BeanUtil.beanToMap(input, false, true);
+        }
         params.forEach(query::setParameter);
+
         return query.executeUpdate();
     }
 
@@ -221,15 +248,15 @@ public class BaseJpaRepository<T> {
     }
 
     public <I, O> List<O> findBySql(String sql, I input, Class<O> cla){
-        Map<String, Object> params = BeanUtil.beanToMap(input);
         Query query = entityManager.createNativeQuery(sql);
+        Map<String, Object> params = BeanUtil.beanToMap(input, false, true);
         params.forEach(query::setParameter);
         List resultList = query.unwrap(NativeQueryImpl.class).setResultTransformer(Transformers.aliasToBean(cla)).getResultList();
         return (List<O>)resultList;
     }
 
     public <I> int executeUpdateBySql(String sql, I input){
-        Map<String, Object> params = BeanUtil.beanToMap(input);
+        Map<String, Object> params = BeanUtil.beanToMap(input, false, true);
         Query query = entityManager.createNativeQuery(sql);
         params.forEach(query::setParameter);
         return query.executeUpdate();
@@ -293,7 +320,6 @@ public class BaseJpaRepository<T> {
         ParameterizedType parameterizedType = (ParameterizedType) superClass;
         Type actualTypeArgument = parameterizedType.getActualTypeArguments()[0];
         return (Class<T>)actualTypeArgument;
-
     }
 
 }

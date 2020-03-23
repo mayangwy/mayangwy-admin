@@ -1,10 +1,12 @@
 package org.mayangwy.admin.modules.system.controller;
 
 import org.mayangwy.admin.core.base.annotation.ReqLog;
+import org.mayangwy.admin.core.base.entity.PageOutput;
 import org.mayangwy.admin.core.base.entity.RespResult;
 import org.mayangwy.admin.core.base.enums.CommonSuccessEnum;
 import org.mayangwy.admin.core.ext.jpa.TestBaseJpaRepository;
 import org.mayangwy.admin.modules.system.entity.UserPO;
+import org.mayangwy.admin.modules.system.entity.UserQueryDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -58,9 +60,19 @@ public class TestController {
 
     @GetMapping("/testFindById")
     @ResponseBody
-    public RespResult<List<String>> testFindById(){
-        List<UserPO> all = testBaseJpaRepository.findList();
-        return RespResult.success(Arrays.asList("123", "456"));
+    public RespResult<List> testFindById(){
+        UserQueryDTO userQueryDTO = new UserQueryDTO();
+        userQueryDTO.setUserNameLike("马杨%");
+        List<UserPO> all = testBaseJpaRepository.findList(userQueryDTO);
+
+        userQueryDTO = new UserQueryDTO();
+        userQueryDTO.setUserName("马杨test");
+        UserPO one = testBaseJpaRepository.findOne(userQueryDTO);
+
+        userQueryDTO = new UserQueryDTO();
+        userQueryDTO.setUserNameLike("马杨%");
+        PageOutput<UserPO> page = testBaseJpaRepository.findPage(userQueryDTO);
+        return RespResult.success(all);
     }
 
 }
