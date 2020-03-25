@@ -1,8 +1,10 @@
 package org.mayangwy.admin.core.base.enums;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
+@AllArgsConstructor
 public enum ErrorLevelEnum {
 
     //ErrorLevel为0时打印WARN级别日志，为1时打印ERROR级别日志
@@ -10,10 +12,5 @@ public enum ErrorLevelEnum {
 
     private Integer value;
     private String desc;
-
-    private ErrorLevelEnum(Integer value, String desc) {
-        this.value = value;
-        this.desc = desc;
-    }
 
 }

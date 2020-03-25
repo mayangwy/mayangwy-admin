@@ -1,8 +1,10 @@
 package org.mayangwy.admin.core.base.enums;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
+@AllArgsConstructor
 public enum CommonSuccessEnum implements ISuccessResultCode {
 
     SUCCESS(CommonSuccessEnum.CODE_SUCCESS, null),
@@ -30,10 +32,5 @@ public enum CommonSuccessEnum implements ISuccessResultCode {
 
     private Integer resultCode;
     private String msg;
-
-    CommonSuccessEnum(Integer resultCode, String msg) {
-        this.resultCode = resultCode;
-        this.msg = msg;
-    }
 
 }

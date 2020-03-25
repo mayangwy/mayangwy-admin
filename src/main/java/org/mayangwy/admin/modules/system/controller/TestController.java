@@ -72,6 +72,10 @@ public class TestController {
         userQueryDTO = new UserQueryDTO();
         userQueryDTO.setUserNameLike("马杨%");
         PageOutput<UserPO> page = testBaseJpaRepository.findPage(userQueryDTO);
+
+        userQueryDTO = new UserQueryDTO();
+        userQueryDTO.setUserNameLike("马杨%");
+        PageOutput<UserPO> pageBySql = testBaseJpaRepository.findPageBySql(userQueryDTO);
         return RespResult.success(all);
     }
 

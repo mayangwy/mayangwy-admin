@@ -7,6 +7,7 @@ import org.mayangwy.admin.modules.system.entity.UserQueryDTO;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class TestBaseJpaRepository extends BaseJpaRepository<UserPO> {
@@ -23,7 +24,8 @@ public class TestBaseJpaRepository extends BaseJpaRepository<UserPO> {
 
     public PageOutput<UserPO> findPage(UserQueryDTO userQueryDTO){
         String hql = "select a from UserPO a where a.userName like :userNameLike and a.isDel = :isDel";
-        return findPage(hql, userQueryDTO, new PageInput());
+        String countHql = "select count(0) from UserPO a where a.userName like :userNameLike and a.isDel = :isDel";
+        return findPage(hql, countHql, userQueryDTO, new PageInput());
     }
 
 }

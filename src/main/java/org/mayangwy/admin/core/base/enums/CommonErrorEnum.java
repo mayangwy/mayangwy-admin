@@ -1,8 +1,10 @@
 package org.mayangwy.admin.core.base.enums;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
+@AllArgsConstructor
 public enum CommonErrorEnum implements IErrorResultCode {
 
     FAIL(2000, "服务器内部异常", 1),
@@ -11,11 +13,5 @@ public enum CommonErrorEnum implements IErrorResultCode {
     private Integer resultCode;
     private String msg;
     private Integer errorLevel;
-
-    CommonErrorEnum(Integer resultCode, String msg, Integer errorLevel) {
-        this.resultCode = resultCode;
-        this.msg = msg;
-        this.errorLevel = errorLevel;
-    }
 
 }

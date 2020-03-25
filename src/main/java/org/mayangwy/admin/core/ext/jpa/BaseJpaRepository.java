@@ -4,13 +4,10 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ClassUtil;
-import org.hibernate.query.internal.NativeQueryImpl;
-import org.hibernate.transform.Transformers;
 import org.mayangwy.admin.core.base.annotation.*;
 import org.mayangwy.admin.core.base.entity.PageInput;
 import org.mayangwy.admin.core.base.entity.PageOutput;
 import org.mayangwy.admin.core.base.enums.IsDelEnum;
-import org.mayangwy.admin.core.base.exception.SystemRuntimeException;
 import org.mayangwy.admin.core.utils.StrUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -182,20 +179,21 @@ public class BaseJpaRepository<T> {
         return objects.get(0);
     }
 
-    public <I, O> PageOutput<O> findPage(String hql, I input, PageInput pageInput){
+    public <I, O> PageOutput<O> findPage(String hql, String countHql, I input, PageInput pageInput){
         Assert.notNull(pageInput, "pageInput is not null");
 
         List<O> objects = find(hql, input, pageInput);
 
         PageOutput<O> pageOutput = new PageOutput<>();
         pageOutput.setList(objects);
+
         if(! pageInput.isCount()){
             return pageOutput;
         }
 
-        String countHql = "select count(0)" + hql.substring(hql.toUpperCase().indexOf(" FROM "));
         Long count = findCount(countHql, input);
         pageOutput.setCount(count);
+
         return pageOutput;
     }
 
@@ -221,9 +219,10 @@ public class BaseJpaRepository<T> {
             params.forEach(query::setParameter);
         }
         if(pageInput != null){
-            query.setFirstResult(pageInput.getCurrentPage());
+            query.setFirstResult(pageInput.getCurrentPage()*pageInput.getPageSize());
             query.setMaxResults(pageInput.getPageSize());
         }
+
         List resultList = query.getResultList();
 
         return (List<O>)resultList;
@@ -240,25 +239,6 @@ public class BaseJpaRepository<T> {
         }
         params.forEach(query::setParameter);
 
-        return query.executeUpdate();
-    }
-
-    public <I, O> List<O> findBySql(String sql, Class<O> cla){
-        return findBySql(sql, null, cla);
-    }
-
-    public <I, O> List<O> findBySql(String sql, I input, Class<O> cla){
-        Query query = entityManager.createNativeQuery(sql);
-        Map<String, Object> params = BeanUtil.beanToMap(input, false, true);
-        params.forEach(query::setParameter);
-        List resultList = query.unwrap(NativeQueryImpl.class).setResultTransformer(Transformers.aliasToBean(cla)).getResultList();
-        return (List<O>)resultList;
-    }
-
-    public <I> int executeUpdateBySql(String sql, I input){
-        Map<String, Object> params = BeanUtil.beanToMap(input, false, true);
-        Query query = entityManager.createNativeQuery(sql);
-        params.forEach(query::setParameter);
         return query.executeUpdate();
     }
 
